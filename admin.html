@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Management</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f9f9f9;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      margin-bottom: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    input, select {
+      width: 100%;
+      padding: 7px;
+      margin: 7px 0;
+        box-sizing: border-box;
+    }
+    button {
+      padding: 8px 12px;
+      border: none;
+      background: #2ecc71;
+      color: white;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    button:hover {
+      background: #27ae60;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: white;
+      box-shadow: 0 0 10px #ccc;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    .logout {
+      float: right;
+      background: #e74c3c;
+    }
+    .logout:hover {
+      background: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <h1>User Management</h1>
+  <button class="logout" id="logoutBtn">Logout</button>
+
+  <form id="userForm">
+    <input type="hidden" id="editIndex">
+    <input type="text" id="name" placeholder="Full Name" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <select id="role">
+      <option value="User">User</option>
+      <option value="Admin">Admin</option>
+    </select>
+    <button type="submit">Save User</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Full Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="userTable"></tbody>
+  </table>
+
+  <script>
+    
+    if (localStorage.getItem("loggedIn") !== "true") {
+      window.location.href = "login.html";
+    }
+
+    const form = document.getElementById("userForm");
+    const table = document.getElementById("userTable");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    let users = JSON.parse(localStorage.getItem("users")) || [];
+
+    function renderUsers() {
+      table.innerHTML = "";
+      users.forEach((user, i) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${user.name}</td>
+          <td>${user.email}</td>
+          <td>${user.role}</td>
+          <td>
+            <button onclick="editUser(${i})">Edit</button>
+            <button onclick="deleteUser(${i})" style="background:#e67e22;">Delete</button>
+          </td>
+        `;
+        table.appendChild(row);
+      });
+      localStorage.setItem("users", JSON.stringify(users));
+    }
+
+    form.onsubmit = function(e) {
+      e.preventDefault();
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const role = document.getElementById("role").value;
+      const editIndex = document.getElementById("editIndex").value;
+
+      if (editIndex === "") {
+        users.push({ name, email, role });
+      } else {
+        users[editIndex] = { name, email, role };
+        document.getElementById("editIndex").value = "";
+      }
+      form.reset();
+      renderUsers();
+    };
+
+    function editUser(index) {
+      const u = users[index];
+      document.getElementById("name").value = u.name;
+      document.getElementById("email").value = u.email;
+      document.getElementById("role").value = u.role;
+      document.getElementById("editIndex").value = index;
+    }
+
+    function deleteUser(index) {
+      if (confirm("Delete this user?")) {
+        users.splice(index, 1);
+        renderUsers();
+      }
+    }
+
+    logoutBtn.onclick = function() {
+      localStorage.removeItem("loggedIn");
+      window.location.href = "login.html";
+    }
+
+    renderUsers();
+  </script>
+</body>
+</html>
